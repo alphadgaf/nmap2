@@ -2,7 +2,6 @@ FROM python:3.13-slim
 
 # Install Nmap
 RUN apt-get update && apt-get install -y nmap && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 COPY requirements.txt .
 
@@ -13,4 +12,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 10000
 
 # Start your bot (Flask runs inside bot.py)
+COPY ..
 CMD ["python", "bot.py"]
