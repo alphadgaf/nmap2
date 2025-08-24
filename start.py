@@ -29,5 +29,5 @@ Example full scan:
 `/scan -sS -sV -A -T4 example.com`
 
 ⚠ Use responsibly. Only scan targets you own or have permission to test.
-"""
+( every command available in nmap is runable """
     update.message.reply_text(help_text, parse_mode="Markdown")

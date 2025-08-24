@@ -1,20 +1,16 @@
-# Use official Python image
 FROM python:3.13-slim
 
-# Install system dependencies
+# Install Nmap
 RUN apt-get update && apt-get install -y nmap && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
-
-# Copy files
 COPY . .
 
-# Install Python dependencies
+# Install Python deps
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port for Flask
-EXPOSE 5000
+# Render’s Docker web services listen on 10000 by convention
+EXPOSE 10000
 
-# Command to run the bot
+# Start your bot (Flask runs inside bot.py)
 CMD ["python", "bot.py"]

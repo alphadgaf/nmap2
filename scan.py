@@ -1,21 +1,32 @@
 import subprocess
 
 def scan_command(update, context):
-    if len(context.args) == 0:
-        update.message.reply_text("Usage: /scan <nmap options> <target>")
+    if not context.args:
+        update.message.reply_text("❌ Usage: /scan <nmap options> <target>\nExample: /scan -sV example.com")
         return
 
-    command = ["nmap"] + context.args
-    update.message.reply_text(f"🔍 Running scan: {' '.join(command)}")
+    # Join user-provided arguments into one command
+    user_command = context.args
+
+    # Basic security check (only allow commands starting with '-' or valid targets)
+    if any(';' in arg or '&&' in arg or '|' in arg for arg in user_command):
+        update.message.reply_text("❌ Invalid characters detected!")
+        return
 
     try:
-        result = subprocess.check_output(command, stderr=subprocess.STDOUT, text=True)
-        if len(result) > 4000:  # Telegram message limit
-            update.message.reply_text("Output too large. Sending as file...")
-            with open("scan_result.txt", "w") as f:
-                f.write(result)
-            update.message.reply_document(open("scan_result.txt", "rb"))
-        else:
-            update.message.reply_text(f"```\n{result}\n```", parse_mode="Markdown")
-    except subprocess.CalledProcessError as e:
-        update.message.reply_text(f"Error: {e.output}")
+        # Construct the nmap command
+        command = ["nmap"] + user_command
+
+        # Run the command
+        result = subprocess.run(command, capture_output=True, text=True, timeout=60)
+
+        # Limit output to Telegram's max message size (4096 chars)
+        output = result.stdout if result.stdout else result.stderr
+        if len(output) > 4000:
+            output = output[:4000] + "\n\n⚠ Output truncated."
+
+        update.message.reply_text(f"✅ Scan Results:\n```\n{output}\n```", parse_mode="Markdown")
+    except subprocess.TimeoutExpired:
+        update.message.reply_text("❌ Scan timed out (max 60 seconds).")
+    except Exception as e:
+        update.message.reply_text(f"❌ Error: {e}")
